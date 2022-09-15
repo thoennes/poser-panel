@@ -11,7 +11,7 @@ However, Poser loses the original OBJ structure during Figure creation.  The res
 
 > Caveat: Poser can export the mesh as an OBJ in the split form it uses internally.  The vertex XYZ's may be edited in the OBJ, without changing the OBJ structure and this "split mesh differently ordered" OBJ can be used as a as a geometry source.  This is because the mesh is already split, which means it's already in the order Poser uses.  The reason a geometry OBJ file has to be structured the same as the source is so that when Poser splits the mesh, it splits it the same way as the original the source mesh.
 
-This might be usable in some cases.  However, Blender scultping does not work well on split meshes.  Generally you want a unimesh for scultping.  If you just wanted to make a figure mesh from scratch, you could import the source OBJ then export that and is it.
+> This might be usable in some cases.  However, Blender scultping does not work well on split meshes.  Generally you want a unimesh for scultping.  If you just wanted to make a figure mesh from scratch, you could import the source OBJ then export that and use it directly in Blender.
 
 But suppose you want a Figure that's already been morphed in Poser?  And you want to modify that morph in Blender?  You can't do it because the welded (unimesh) morphed exported OBJ from Poser can't be used as a morph in Poser.
 
@@ -26,4 +26,5 @@ Let's say we have file 3, which has a different shape but is structured the same
 
 If we want to change the original file, we set all the verts in fiole 1 to values in file 3, looking up which vert in 1 shoulld be changed for each vert in 3.  EG:see that v100 in file 3 is v1 in file 1.  So set v1(x,y,z) = to v100(x,y,z)
 
+[Untitled Diagram.drawio.pdf](https://github.com/thoennes/poser-panel/files/9572631/Untitled.Diagram.drawio.pdf)
 

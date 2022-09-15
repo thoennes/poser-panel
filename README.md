@@ -26,3 +26,4 @@ Let's say we have file 3, which has a different shape but is structured the same
 
 If we want to change the original file, we set all the verts in fiole 1 to values in file 3, looking up which vert in 1 shoulld be changed for each vert in 3.  EG:see that v100 in file 3 is v1 in file 1.  So set v1(x,y,z) = to v100(x,y,z)
 
+![flow](https://user-images.githubusercontent.com/1562991/190336870-fdcaab3a-ebe3-45ce-890a-0716f31eaebc.png)

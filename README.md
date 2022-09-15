@@ -26,5 +26,3 @@ Let's say we have file 3, which has a different shape but is structured the same
 
 If we want to change the original file, we set all the verts in fiole 1 to values in file 3, looking up which vert in 1 shoulld be changed for each vert in 3.  EG:see that v100 in file 3 is v1 in file 1.  So set v1(x,y,z) = to v100(x,y,z)
 
-[Untitled Diagram.drawio.pdf](https://github.com/thoennes/poser-panel/files/9572631/Untitled.Diagram.drawio.pdf)
-

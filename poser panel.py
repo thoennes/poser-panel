@@ -12,6 +12,11 @@ import bpy
 from bpy.types import Scene, Object, Panel, Operator
 from bpy.props import IntProperty, BoolProperty, PointerProperty, StringProperty
 from bpy.utils import register_class, unregister_class
+import pprint
+
+
+logfile = open('/Users/thoennes/Desktop/poser-panel-log.txt', 'w')
+
 
 PRECISION = 100000
 
@@ -21,39 +26,53 @@ def vectorKey(self, vector, precision = PRECISION):
 
 def copyMesh(self, context, mesh):
 	'''Copy mesh'''
+
+	print('> copyMesh()')
+
 	new = mesh.copy()
 	new.data = mesh.data.copy()
 	context.collection.objects.link(new)
+	print('    -> Mesh copied.')
+
 	return new
 
 def mapMeshes(self, mesh1, mesh2, precision = PRECISION):
 	'''Return maps of (x,y,z) keyed indexes for mesh1 and mesh2}'''
 
+	print('> mapMeshes()')
+
 	map1 = {}
 	map2 = {}
+	map3 = {}
 
 	i = 0
 	for vertex in mesh1.data.vertices:
 		xyz = vectorKey(self, vertex.co, precision)
 		map1.setdefault(xyz, []).append(i)
+		map3.setdefault(xyz, {'map1':[], 'map2':[]})['map1'].append(i)
 		i += 1
 
 	i = 0
 	for vertex in mesh2.data.vertices:
 		xyz = vectorKey(self, vertex.co, precision)
 		map2.setdefault(xyz, []).append(i)
+		map3.setdefault(xyz, {'map1':[], 'map2':[]})['map2'].append(i)
 		i += 1
 
+	# pp = pprint.PrettyPrinter()
+	# pp.pprint(map3)
+
 	if not (map1.keys() == map2.keys()):
-		print('Meshes are not the exact same shape; (mesh1: %s mesh2: %s); precision = %s' % (len(map1), len(map2), precision))
+		print('   -> Meshes are not the exact same shape; (mesh1: %s mesh2: %s); precision = %s' % (len(map1), len(map2), precision), file=logfile)
 		return
 
-	print ('map is valid')
+	print('    -> Map is valid.')
 	return map1, map2
 
 def compareMeshes(self, mesh1, mesh2, precision = PRECISION):
 	'''Return result of check OR None if no issues'''
 
+	print('COMPARE MESHES', file=logfile)
 	# check1: (quickest) same number of verts
 	if (len(mesh1.data.vertices) != len(mesh2.data.vertices)):
 		return 'vert count not equal; (mesh1: %s mesh2: %s)' % (len(mesh1.data.vertices), len(mesh2.data.vertices))
@@ -80,44 +99,43 @@ def compareMeshes(self, mesh1, mesh2, precision = PRECISION):
 
 	return
 
-def poser_check_meshes(self, context, mesh):
+def poserCheckMeshes(self, context, mesh):
 	PRECISION = 10**context.scene.Precision
+
+	print('> poserCheckMeshes(%s)' % (mesh), self, context)
 
 	if mesh == 'base' or mesh == 'zero':
 		self.poser_same_mesh_shape = False
-		if (self.poser_original_mesh is None or self.poser_zero_mesh is None):
-			print ('no mapping possible')
+		mesh1 = self.poser_original_mesh
+		mesh2 = self.poser_zero_mesh
+
+		if (mesh1 is None or mesh2):
+			print ('    -> Mapping base <-> zero not possible.')
 		else:
-			print ('mapping...')
+			print ('    -> Mapping base <-> zero ...')
 			maps = None
-			maps = mapMeshes(
-				self,
-				mesh1 = self.poser_original_mesh,
-				mesh2 = self.poser_zero_mesh,
-				precision = PRECISION)
+			maps = mapMeshes(self, mesh1 = mesh1, mesh2 = mesh2, precision = PRECISION)
 			if maps is None:
 				return
 			self.poser_same_mesh_shape = True
-			print ('mapped')
+			print ('    -> Mapped base <-> zero.')
 
 	if mesh == 'zero' or mesh == 'morph':
 		self.poser_same_mesh_struct = False
-		if (self.poser_zero_mesh is None or self.poser_morphed_mesh is None):
-			print ('no structure checking possible')
+		mesh1 = self.poser_zero_mesh
+		mesh2 = self.poser_morphed_mesh
+
+		if (mesh1 is None or mesh2 is None):
+			print ('    -> Checking structure zero <-> morph not possible.')
 		else:
 			check = None
-			print ('checking structure...')
-			check = compareMeshes(
-				self,
-				mesh1 = self.poser_zero_mesh,
-				mesh2 = self.poser_morphed_mesh,
-				precision = PRECISION
-			)
+			print ('    -> Checking structure zero <-> morph ...')
+			check = compareMeshes(self, mesh1 = mesh1, mesh2 = mesh2, precision = PRECISION)
 			if (check is not None):
 				print (check)
 				return
 			self.poser_same_mesh_struct = True
-			print ('structure checked')
+			print ('    -> Checked structure zero <-> morph.')
 
 	if mesh == 'base' or mesh == 'morph' or mesh == 'unimesh':
 		self.poser_same_mesh_shape_and_struct = False
@@ -125,36 +143,33 @@ def poser_check_meshes(self, context, mesh):
 		same_mesh_shape = False
 		same_mesh_struct = False
 
-		if (self.poser_morphed_mesh is None or self.poser_uni_mesh is None):
-			print ('no mapping possible')
+		mesh1 = self.poser_morphed_mesh
+		mesh2 = self.poser_uni_mesh
+
+		if (mesh1 is None or mesh2 is None):
+			print ('    -> Mapping morphed <-> unimesh not possible.')
 		else:
-			print ('mapping...')
+			print ('    -> Mapping morphed <-> unimesh ...')
 			maps = None
-			maps = mapMeshes(
-				self,
-				mesh1 = self.poser_uni_mesh,
-				mesh2 = self.poser_morphed_mesh,
-				precision = PRECISION)
+			maps = mapMeshes(self, mesh1 = mesh1, mesh2 = mesh2, precision = PRECISION)
 			if maps is None:
 				return
 			same_mesh_shape = True
-			print ('mapped')
-		if (self.poser_original_mesh is None or self.poser_uni_mesh is None):
-			print ('no structure checking possible')
+			print ('    -> Mapped morphed <-> unimesh.')
+
+		mesh1 = self.poser_original_mesh
+		mesh2 = self.poser_uni_mesh
+
+		if (mesh1 is None or mesh2 is None):
+			print ('    -> Checking structure base <-> unimesh not possible.')
 		else:
 			check = None
-			print ('checking structure...')
-			check = compareMeshes(
-				self,
-				mesh1 = self.poser_original_mesh,
-				mesh2 = self.poser_uni_mesh,
-				precision = PRECISION
-			)
+			print ('    -> Checking structure base <-> unimesh...')
+			check = compareMeshes(self, mesh1 = mesh1, mesh2 = mesh2, precision = PRECISION)
 			if (check is not None):
-				print (check)
 				return
 			same_mesh_struct = True
-			print ('structure checked')
+			print ('    -> Checked structure base <-> unimesh.')
 
 		if (same_mesh_shape and same_mesh_struct):
 			self.poser_same_mesh_shape_and_struct = True
@@ -173,6 +188,9 @@ class PoserWriteUnimesh(Operator):
 		PRECISION = 100000
 
 	def execute(self, context):
+
+		print('PoserWriteUnimesh.execute()')
+
 		basemap = None
 		zeromap = None
 		maps = None
@@ -200,6 +218,7 @@ class PoserWriteUnimesh(Operator):
 				message = 'Missing unimesh target'
 			)
 		else:
+			print('    -> Writing unimesh...')
 			# do this as a shapekey
 			# keyName = None
 			# if context.scene.poser_morph_as_shapekey:
@@ -219,6 +238,9 @@ class PoserWriteUnimesh(Operator):
 						# 	context.scene.poser_uni_mesh.data.shape_keys.key_blocks[keyName].data[bv].co = context.scene.poser_morphed_mesh.data.vertices[tv].co
 						# else:
 						context.scene.poser_uni_mesh.data.vertices[bv].co = context.scene.poser_morphed_mesh.data.vertices[tv].co
+			print('    -> Unimesh written.')
+			poserCheckMeshes(context.scene, context, 'unimesh')
+
 		return {'FINISHED'}
 
 class PoserCastMesh(Operator):
@@ -235,6 +257,9 @@ class PoserCastMesh(Operator):
 		PRECISION = 100000
 
 	def execute(self, context):
+
+		print('PoserCastMesh.execute()')
+
 		PRECISION = 10**context.scene.Precision
 
 		basemap = None
@@ -271,6 +296,8 @@ class PoserCastMesh(Operator):
 					for tv in zeromap[xyz]:
 						context.scene.poser_morphed_mesh.data.vertices[tv].co = context.scene.poser_uni_mesh.data.vertices[bv].co
 
+		print('    -> Unimesh cast.')
+
 		return {'FINISHED'}
 
 class PoserCopyVectors(Operator):
@@ -287,6 +314,9 @@ class PoserCopyVectors(Operator):
 			return True
 
 	def execute(self, context):
+
+		print('PoserCopyVectors.execute()')
+
 		mode = bpy.context.active_object.mode
 		# we need to switch from Edit mode to Object mode so the selection gets updated
 		bpy.ops.object.mode_set(mode = 'OBJECT')
@@ -299,6 +329,9 @@ class PoserCopyVectors(Operator):
 
 		# back to whatever mode we were in
 		bpy.ops.object.mode_set(mode = mode)
+
+		print('    -> Vectors copied.')
+
 		return {'FINISHED'}
 
 class PoserTweakMesh(Operator):
@@ -431,25 +464,25 @@ def register():
 		type = Object,
 		name = 'Original Mesh',
 		description = 'From Poser Geometries folder',
-		update = lambda self, context: poser_check_meshes(self, context, mesh = 'base')
+		update = lambda self, context: poserCheckMeshes(self, context, mesh = 'base')
 	)
 	Scene.poser_zero_mesh = PointerProperty(
 		type = Object,
 		name = 'Zero Mesh',
 		description = 'From Poser OBJ export: no IK, zero all, welded or unwelded, as Morph Target, include body part names; welding must match Morphed mesh',
-		update = lambda self, context: poser_check_meshes(self, context, mesh = 'zero')
+		update = lambda self, context: poserCheckMeshes(self, context, mesh = 'zero')
 	)
 	Scene.poser_morphed_mesh = PointerProperty(
 		type = Object,
 		name = 'Morphed Mesh',
 		description = 'From Poser OBJ export: no IK, *morphed*, zero rotations and transformations, welded or unwelded, *not* as Morph Target, include body part names; welding must match Zero mesh',
-		update = lambda self, context: poser_check_meshes(self, context, mesh = 'morph')
+		update = lambda self, context: poserCheckMeshes(self, context, mesh = 'morph')
 	)
 	Scene.poser_uni_mesh = PointerProperty(
 		type = Object,
 		name = 'Morphed Original Mesh',
 		description = "Must match Original OBJ structure (vert count, order, vert groups) but may have any shape (vert xyz's don't have to match => they may be set from Morphed Mesh",
-		update = lambda self, context: poser_check_meshes(self, context, mesh = 'unimesh')
+		update = lambda self, context: poserCheckMeshes(self, context, mesh = 'unimesh')
 	)
 	# Scene.poser_morph_as_shapekey = BoolProperty(
 	# 	name = 'As Shape Key',

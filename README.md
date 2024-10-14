@@ -2,12 +2,25 @@
 A Blender Add-on to help working with Poser exported OBJ files in Blender
 
 ## Summary
-Using 3 specific OBJ files, shapes a 4th object that has the same internal structure as the first object but is shaped like the 3rd object.
+Using 2 OBJ files of the same *exact* mesh shape but with different vert orders and/or counts, creates a map that can be used to transfer shapes between a second pair with the same vert orders and face structures as the first pair.
+
+## Reason for this Add-on
+I wanted to use Blender for sculpting Poser Figure morphs.  Blender's sculpting tools have come a long way, providing a full mesh sculpting and editing suite of tools.
+
+Poser, like all 3d applications, creates an internal Object representation of the original OBJ.  Poser structures a multi-actor Object (eg: a Figure) as a group of disconnected submeshes, one for each actor. For each actor that joins to another actor, the common mesh edge is shared; that is, the vertexes that make up the shared edge are duplicated in each submesh and logically "welded" by Poser.
 
 ## Background Problem
-During Figure creation, Poser splits the source OBJ unimesh into sub-meshes which are used internally.  Poser can also use OBJ files with the same structure as the original source OBJ.  IE: the same vert count, vert order, faces, and polygons.
+During Figure creation, Poser splits the source OBJ unimesh into sub-meshes which are used internally.
 
-However, Poser loses the original OBJ structure during Figure creation.  The result of this is that Poser cannot export an OBJ from the Figure that it can use directly as a geometry source for a Figure "Full Body Morph".   In short, Poser exports vertices in a different order than the original OBJ.
+However, Poser loses the original OBJ structure during this process.  The result of this is that Poser cannot export an OBJ in the same vertex order as the original OBJ.  Without the "weld" option, the export OBJ will now even have the same vertex count, as the Poser "splitting" process dupplicated vertexes of the shared edges.  Even with Using the "weld" OBJ export option, this only "unimeshes" the mesh.  The vert order is still different than the original OBJ.
+
+Because of this, the Poser exported OBj cannot be used (practically) in other programs as a mesh to produce shapes that are then used to morph the source Poser figure.
+
+A caveat: Poser *can* actually use the exported and split OBj as a source mesh for its own morphs.  However, such a split mesh cannot be easily sculpted in external applications (like Blender) since, during sculpting, the mesh seams "tear apart".
+
+A Poser exported OBJ cannot be used to transfer a shape (ie: morph) to the same Figure in Daz Dtudio (DS).
+
+from the Figure that it can use directly as a geometry source for a Figure "Full Body Morph".   In short, Poser exports vertices in a different order than the original OBJ.
 
 > Caveat: Poser can export the mesh as an OBJ in the split form it uses internally.  The vertex XYZ's may be edited in the OBJ, without changing the OBJ structure and this "split mesh differently ordered" OBJ can be used as a as a geometry source.  This is because the mesh is already split, which means it's already in the order Poser uses.  The reason a geometry OBJ file has to be structured the same as the source is so that when Poser splits the mesh, it splits it the same way as the original the source mesh.
 

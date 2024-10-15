@@ -14,7 +14,7 @@ I wanted to use Blender for sculpting Poser Figure morphs.  In Poser and Daz Stu
 
 Poser exports unimesh OBJs (ie: "welded") which can't be used as morphs in either Poser or DS.  This is because Poser does not export a mesh in OBJ format with the same structure as the original OBJ.  Even when welded (ie: the vertex count is made the same as the original), the vertex order is different.
 
-## Explanation
+### Explanation
 
 In Object files, vertexes are defined in a simple text file with one vertex per line, defined as:
 
@@ -44,7 +44,7 @@ No matter how the internal format is stored, what matters is that the orignal or
 
 This means you can never use a Poser exported figure mesh, in an OBJ format that can be used by anything (even by Poser) as a source for a FBM.
 
-## Analysis
+### Analysis
 
 When Poser makes an internal mesh object from that original unimesh OBJ, it splits the mesh into several sub-meshes and orders the vertexes differently.  When it exports that internal mesh object, the resulting OBJ has a different vertex order than the source file.
 
@@ -68,19 +68,17 @@ For each actor that joins to another actor, the common mesh edge is shared; that
 
 ![forearm shared edges](./forearm-edge.png) "Forearm edges shared with other sub-meshes (in this case, Hand and Shoulder)"
 
-
-## Questions
+### Question
 Given that Poser did not save a vertex map to allow reconsitution of the original OBJ structure, what's to be done?
+
+### Answer
 
 We need two things to recreate the original OBJ structure with a Poser ordered shape for that mesh:
 
 - A mapping from original vertex indexes to Poser vertex indexes.
 - A way to use that info to create an original vertex ordered OBJ *but* with the shape of the Poser vert ordered OBJ.
 
-## Answer
-Create that "missing map" and use that to create a properly ordered OBJ.  
-
-# Description of Solution
+## Solution
 This Add-on uses some of the characteristics of Poser export, OBJ files, and Blender OBj import/export to help provide an answer.
 
 - Poser exports a zero'd mesh with the vertexes all in the same exact xyz positions as the source OBJ but a different vertex order.  You don't even need the same number of verts. But you do need the polygroups (ie: Actors) and it's also handy to have the material groups, which helps with complex selections in Blender.
@@ -98,7 +96,7 @@ In short, the list of keys from one OBJ will be equal to the list of keys for th
 
 What do we store in those dictionaries?  The indexes of the vertexes.
 
-# Example
+### Example
 
 3 meshes, in 2D with simple x and y's to keep it brief, clear, and simple.  We'll be using the indexes, directly, to represent the vertex positions.  In reality, the vertexes are actually a class that has (x,y,z) positions.  Those positions are used to make INT based (X,Y,Z) dictionaries of the Vertex indexes.
 

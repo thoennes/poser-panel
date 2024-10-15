@@ -12,9 +12,11 @@ I wanted to use Blender for sculpting Poser Figure morphs.  In Poser and Daz Stu
 
 ## Problem
 
+### Overview
+
 Poser exports a mesh as an OBJ which can't be used as a morph in either Poser or DS.  This is because Poser does not export a mesh with the same structure as the original OBJ; the vertex order is different. Even when welded  (ie: the vertex count is made the same as the original) into a single mesh (aka: unimesh).
 
-### Explanation
+### Details
 
 #### OBJ Format
 

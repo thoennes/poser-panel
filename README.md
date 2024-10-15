@@ -23,7 +23,7 @@ Poser exports a mesh as an OBJ which can't be used as a morph in either Poser or
 In Object files, vertexes are defined in a plain text file (eg: mesh.obj) with one vertex per line, defined as:
 
 <pre>
-v x,y,z
+  v x,y,z
 </pre>
 
 The vertex index, v[i], is just a counter that increments for each "v" line read sequentially from the text file.
@@ -97,32 +97,43 @@ So, if we have a source OBJ, and a Poser exported OBJ with unchanged vertexes, w
 
 This add-on uses Python dictionaries and lists to do so.  In some languages, dictionaries are known as associative arrays.  In Python, dicts can be keyed using tuples.  A tuple is a list of numbers separated by commas.  As in the x,y,z of a vertex; eg: (2,5,1).  A dictionary entry with a list of indexes might look like:
 
-<ul>
+<pre>
   mesh(2,5,1)=[v.34, v.21]
-</ul>
+</pre>
 
 Where vertex 21 and vertex 34 both have position x=2, y=5, and z=1
 
-If we have an original OBJ and a Poser OBJ (that is zero'd and from the original OBJ), then a dict keyed on each vertex (x,y,z) with be the same!  That is, for every key (x,y,z) of the first OBJ, there will be exactly one key (x,y,z) of the second OBJ *and* vice versa.
+If we have an original OBJ and a Poser OBJ (that is zero'd and from the original OBJ), and make a dictionary of each, keyed on each vertex position (x,y,z)
 
-In short, the list of keys from one OBJ will be equal to the list of keys for the second OBJ.
-
-If we store the indexes of the vertexes in a positionally keyed dictionary, we can make a map between mesh indexes!
-
-<ul>
+<pre>
   mesh_original(2,5,1)   = [v.123]
   mesh_poser_zero(2,5,1) = [v.34, v.21]
+</pre>
 
+and compare the two __lists of keys__
+
+<pre>
   mesh_original_keys   = [ (2,5,1) ]
   mesh_poser_zero_keys = [ (2,5,1) ]
+</pre>
 
+they with be the same!  If this is true, the two meshes are the same shape. (simplified, but essentially true in this work flow)
+
+<pre>
   mesh_original_keys == mesh_poser_zero_keys
-</ul>
+</pre>
+
+That is, for every key (x,y,z) of the first OBJ, there will be exactly one key (x,y,z) of the second OBJ *and* vice versa.
+
+If we store the indexes of the vertexes in those positionally keyed dictionaries, we can make a map between mesh indexes!
 
 __map:__
 
-mesh_poser_zero.v34 <-> mesh_original.v123
-mesh_poser_zero.v21 <-> mesh_original.v123
+<pre>
+  mesh_poser_zero.v34 & mesh_poser_zero.v21 <-> mesh_original.v123
+</pre>
+
+How do we use this?  Read on...
 
 ### Example
 
@@ -157,7 +168,6 @@ A split version of the same mesh; ie: same shape, different verts (two 1x2 meshe
 
 ![A 2x2 face split mesh with 12 verts](./mesh-2.png) "Mesh 2"
 
-
 | index | OBJ vertex line |
 | --- | --- |
 | 1 | v 0,0 |
@@ -174,7 +184,7 @@ A split version of the same mesh; ie: same shape, different verts (two 1x2 meshe
 | 12 | v 2,2 |
 
 A dictionary of the first mesh, key=x,y value=index list (ie: indexes with this key)
-<ul>
+<pre>
   mesh1(0,0) = [1]
   mesh1(1,0) = [2]
   mesh1(2,0) = [3]
@@ -184,11 +194,11 @@ A dictionary of the first mesh, key=x,y value=index list (ie: indexes with this 
   mesh1(0,2) = [7]
   mesh1(1,2) = [8]
   mesh1(2,2) = [9]
-</ul>
+</pre>
 
 A dictionary of the second mesh, key=x,y value=index list (ie: indexes with this key)
 
-<ul>
+<pre>
   mesh2(0,0) = [1]
   mesh2(1,0) = [2,3]
   mesh2(2,0) = [4]
@@ -198,13 +208,13 @@ A dictionary of the second mesh, key=x,y value=index list (ie: indexes with this
   mesh2(0,2) = [9]
   mesh2(1,2) = [10,11]
   mesh2(2,2) = [12]
-</ul>
+</pre>
 
 This gives us the map we need!  Starting with a mesh 2 vertex or index 7, we get the key of (1,1).  Then we look at Mesh1(1,1) and get it's index of 5.  Index 7 (and index 6, since those vertexes are "welded") in the second mesh corresponds to index 5 of the first mesh.
 
 Nice.
 
-Now, if we have a third mesh that has the same vert order as that second mesh (that is index1 of the first = index1 of the second, etc.) We can use that map to impose the shape of the third mesh ON the first mesh, mapping *through* mesh 2 (reemember: the Poser exported ZERO version of the orignal)
+Now, if we have a third mesh that has the same vert order as that second mesh (that is index1 of the first = index1 of the second, etc.) We can use the map, we can recreate the first mesh with the __shape__ of the third mesh by mapping *through* mesh 2 (that was the Poser exported ZERO version of the orignal, which is also ZERO but unimesh)
 
 __mesh 3__
 
@@ -227,8 +237,9 @@ A mesh with the same vert order as the second, BUT with different shape.  In thi
 | 11 | v 2,4 |
 | 12 | v 3,4 |
 
-Resulting dict
-<ul>
+Resulting dict:
+
+<pre>
   mesh2(1,2) = [1]
   mesh2(2,2) = [2,3]
   mesh2(3,2) = [4]
@@ -238,7 +249,7 @@ Resulting dict
   mesh2(1,4) = [9]
   mesh2(2,4) = [10,11]
   mesh2(3,4) = [12]
-</ul>
+</pre>
 
 Now, to make the first mesh have the same shape as this.
 
@@ -268,5 +279,7 @@ A mesh with the structure of Mesh 1 and the shape of Mesh 3.
 This is an OBJ with the same structure as __mesh1__, but with the shape of __mesh 3__.  This mesh could be used as a FBM in Poser or DS for a figure that was made from __mesh 1__.  It could also be changed (edited and/or sculpted) in Blender without splitting.  Then exported as an OBJ and used in Poser or DS.
 
 When Mesh 4 is loaded as a morph in Poser or DS for a figure that originated with Mesh 1, it creates a morph that moves the mesh 1 unit in the x direction and 2 units in the y direction.  It creates a parameter dial in the root of the Figure that drives this morph.
+
+In Blender, for a typical Poser Figure mesh density (~50k faces - circa 2024), this all happens in under a second.
 
 Cool.

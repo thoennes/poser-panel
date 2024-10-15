@@ -126,6 +126,7 @@ __mesh 2__
 A split version of the same mesh; ie: same shape, different verts (two 1x2 meshes, with a shared edge up the middle, 12 vertexes)
 
 | index | position |
+| --- | --- |
 | 1 | 0,0 |
 | 2 | 1,0 |
 | 3 | 1,0 |

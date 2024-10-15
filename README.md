@@ -26,7 +26,7 @@ In Object files, vertexes are defined in a plain text file (eg: mesh.obj) with o
 v x,y,z
 </pre>
 
-The vertex index (v[i]) is just a counter that increments for each "v" line read sequentially from the text file.
+The vertex index, v[i], is just a counter that increments for each "v" line read sequentially from the text file.
 
 As in:
 
@@ -40,7 +40,7 @@ with the indexes being 1, 2, and 3 reaspectively; for v[1], v[2], v[3].
 
 #### Meshes 
 
-Every application represents meshes internally using different programmatic structures.  But the basis for any mesh in any application is still a collection of vertexes; every mesh has a vertex list.  And that list has some form of index.  The vertex lists may be kept in different forms, internal to the application.  Which means that the index is likely maintained using different methods.  It may be a propery of a Vertex Object.  It may be it's position in a list of tertexes.  In OBJ format, we see the index comes from the vertexes order in the list.
+Every application represents meshes internally using different programmatic structures.  But the basis for any mesh in any application is still a collection of vertexes; every mesh has a vertex list.  And that list has some form of index.  The vertex lists may be kept in different forms, internal to the application.  Which means that the index is likely maintained using different methods.  It may be a propery of a Vertex Object.  It may be it's position in a list of vertexes.  In OBJ format, we see the index comes from the vertex sequential position in the vertex list.
 
 To solve this problem, no matter how the internal format is stored, what matters is that the order from the original OBJ file can be reconstructed when the mesh is exported back as an OBJ.
  

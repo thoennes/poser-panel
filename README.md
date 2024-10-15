@@ -12,17 +12,19 @@ I wanted to use Blender for sculpting Poser Figure morphs.  In Poser and Daz Stu
 
 ## Problem
 
-Poser exports unimesh OBJs (ie: "welded") which can't be used as morphs in either Poser or DS.  This is because Poser does not export a mesh in OBJ format with the same structure as the original OBJ.  Even when welded (ie: the vertex count is made the same as the original), the vertex order is different.
+Poser exports a mesh as an OBJ which can't be used as a morph in either Poser or DS.  This is because Poser does not export a mesh with the same structure as the original OBJ; the vertex order is different. Even when welded  (ie: the vertex count is made the same as the original) into a single mesh (aka: unimesh).
 
 ### Explanation
 
-In Object files, vertexes are defined in a simple text file with one vertex per line, defined as:
+#### OBJ Format
+
+In Object files, vertexes are defined in a plain text file (eg: mesh.obj) with one vertex per line, defined as:
 
 <pre>
 v x,y,z
 </pre>
 
-The vertex index is just a counter that increments for each "v" line read sequentially from the text file.
+The vertex index (v[i]) is just a counter that increments for each "v" line read sequentially from the text file.
 
 As in:
 
@@ -32,17 +34,19 @@ As in:
   v 4,67,2
 </pre>
 
-with the indexes being 1, 2, and 3 reaspectively.
+with the indexes being 1, 2, and 3 reaspectively; for v[1], v[2], v[3].
 
-Every application represents meshes internally using different programmatic structures.  But the basis for any mesh, in any application, is still a collection of vertexes; every mesh a vertex list.  And that list has some form of index.  In OBJ format, we see the index comes from the vertexes order in the list.
+#### Meshes 
 
-No matter how the internal format is stored, what matters is that the orignal order (from the OBJ file) can be reconstructed when the mesh is exported.
+Every application represents meshes internally using different programmatic structures.  But the basis for any mesh in any application is still a collection of vertexes; every mesh has a vertex list.  And that list has some form of index.  The vertex lists may be kept in different forms, internal to the application.  Which means that the index is likely maintained using different methods.  It may be a propery of a Vertex Object.  It may be it's position in a list of tertexes.  In OBJ format, we see the index comes from the vertexes order in the list.
+
+To solve this problem, no matter how the internal format is stored, what matters is that the order from the original OBJ file can be reconstructed when the mesh is exported back as an OBJ.
  
-- Daz Studio can export an mesh in the original unimesh OBJ order
-- Blender can export an mesh in the original unimesh OBJ order
-- Poser __CANNOT__ export a mesh in the original unimesh OBJ order
+- Daz Studio can export an mesh in the original OBJ order
+- Blender can export an mesh in the original OBJ order
+- Poser __CANNOT__ export a mesh in the original OBJ order
 
-This means you can never use a Poser exported figure mesh, in an OBJ format that can be used by anything (even by Poser) as a source for a FBM.
+Since the vertex order of an OBJ to be used as a FBM must be the same as the original OBJ, you can never use a Poser exported figure mesh, in an OBJ format that can be used by anything (even by Poser) as a source for a FBM.
 
 ### Analysis
 
@@ -50,16 +54,16 @@ When Poser makes an internal mesh object from that original unimesh OBJ, it spli
 
 __Note:__
 <ul>
-This would not really be a problem if Poser simply put the vertexes back into the original order when it exports the mesh as OBJ.  But, alas, while it *could* have saved a map of Poser vertex indexes to original vertex indexes and use that to reconstitute an originally ordered vertex OBJ upon export, it did *not* save that information.  A lost opportunity and something that could be easily fixed in Poser.  Just sayin'
+This would not really be a problem if Poser simply put the vertexes back into the original order when it exports the mesh as an OBJ.  But, while it *could* have saved a map of Poser vertex indexes to original vertex indexes and use that to reconstitute an originally ordered vertex OBJ upon export, it did *not* save that information.  A lost opportunity and something that could be fixed in Poser.  Just sayin'
 </ul>
 
 ![arm area of figure](./arm.png) "Arm area of a Figure's mesh"
 
-Different than many "younger" 3D applications, Poser structures a multi-actor Object (eg: a Figure) as a group of disconnected submeshes, one for each actor.
+Different than 3D applications such as Blender or DS, Poser structures a *Figure* as a group of disconnected submeshes, one submesh attached to each actor (bone).
 
 __Note:__
 <ul>
-Poser was written before this sort of 3D application was as common as now.  And it fundamentally depends on its way of doing this.  Re-writing Poser to use the newer method is not an easy (or cheap) thing.
+Poser was written before this sort of 3D application was common and it fundamentally depends on its way of doing this.  Re-writing Poser to use the different method of rigging (ie: unimesh) is not trivial.
 </ul>
 
 ![forearm submesh of figure](./forearm.png) "Forearm sub-mesh of the Arm"
@@ -73,10 +77,10 @@ Given that Poser did not save a vertex map to allow reconsitution of the origina
 
 ### Answer
 
-We need two things to recreate the original OBJ structure with a Poser ordered shape for that mesh:
+We need only two things to recreate the original OBJ structure with a Poser ordered shape for that mesh:
 
-- A mapping from original vertex indexes to Poser vertex indexes.
-- A way to use that info to create an original vertex ordered OBJ *but* with the shape of the Poser vert ordered OBJ.
+- A mapping from original vertex indexes (vo[i]) to Poser vertex indexes (vp[i]).
+- A way to use that info to create an original vertex ordered OBJ *but* with the shape of the Poser vertex ordered OBJ.
 
 ## Solution
 This Add-on uses some of the characteristics of Poser export, OBJ files, and Blender OBj import/export to help provide an answer.
@@ -88,13 +92,19 @@ This Add-on uses some of the characteristics of Poser export, OBJ files, and Ble
 
 So, if we have a source OBJ, and a Poser exported OBJ with unchanged vertexes, we can compare them and find a mapping between one vert order and the other in Blender.
 
-This add-on uses Python dictionaries and lists to do so.  In some languages, dictionaries are known as associative arrays.  In Python, dicts can be keyed using tuples.  A Tuple is a list of numbers seaprated by commas.  As in the X,Y,Z of a vertex :)
+This add-on uses Python dictionaries and lists to do so.  In some languages, dictionaries are known as associative arrays.  In Python, dicts can be keyed using tuples.  A tuple is a list of numbers separated by commas.  As in the x,y,z of a vertex; eg: (2,5,1).  A dictionary entry with a list of indexes might look like:
 
-If we have an original OBJ and a Poser OBJ (that is zero'd and came from that original OBJ), then a dict keyed on each vertex X,Y,Z with be the same!  That is, for every vertex(x,y,z) of the first OBJ, there will be exactly one vertex(x,y,z) of the second OBJ *and* vice versa.
+<ul>
+  dict(2,5,1)=[v[34],v[21]]
+</ul>
+
+Which would mean that both vertex 21 and vertex 34 have position x=2, y=5, and z=1
+
+If we have an original OBJ and a Poser OBJ (that is zero'd and came from that original OBJ), then a dict keyed on each vertex (x,y,z) with be the same!  That is, for every vertex(x,y,z) of the first OBJ, there will be exactly one vertex(x,y,z) of the second OBJ *and* vice versa.
 
 In short, the list of keys from one OBJ will be equal to the list of keys for the second OBJ.
 
-What do we store in those dictionaries?  The indexes of the vertexes.
+If we store the indexes of the vertexes in a positionally keyed dictionary, we can make a map between mesh indexes!
 
 ### Example
 
@@ -107,7 +117,8 @@ We will use all this to make the first mesh look like the third mesh.  How we wo
 
 __mesh 1__
 
-A 2x2 face unimesh, 9 verts:
+A 2x2 face unimesh, 9 verts
+
 
 | index | position |
 | --- | --- |

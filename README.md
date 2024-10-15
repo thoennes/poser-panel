@@ -36,7 +36,7 @@ As in:
   v 4,67,2
 </pre>
 
-with the indexes being 1, 2, and 3 reaspectively; for v[1], v[2], v[3].
+with the indexes being 1, 2, and 3 respectively; for v[1], v[2], v[3].
 
 #### Meshes 
 

@@ -119,6 +119,7 @@ __mesh 1__
 
 A 2x2 face unimesh, 9 verts
 
+![A 2x2 face unimesh with 9 verts](./mesh-1.png) "Mesh 1"
 
 | index | position |
 | --- | --- |
@@ -135,6 +136,9 @@ A 2x2 face unimesh, 9 verts
 __mesh 2__
 
 A split version of the same mesh; ie: same shape, different verts (two 1x2 meshes, with a shared edge up the middle, 12 vertexes)
+
+![A 2x2 face split mesh with 12 verts](./mesh-2.png) "Mesh 2"
+
 
 | index | position |
 | --- | --- |
@@ -188,6 +192,8 @@ __mesh 3__
 
 A mesh with the same vert order as the second, BUT with different shape.  In this case, shifted by 1 in x and 2 in y
 
+![A 2x2 face mesh with 12 verts but different shape](./mesh-3.png) "Mesh 3"
+
 | index | position |
 | --- | --- |
 | 1 | 1,2 |
@@ -223,6 +229,11 @@ For each vert in the third mesh, we get it's key.  That's it's (x,y).  We'll wan
 Index 1 of third mesh.  Gives us an (x,y) of (1,2).  In mesh2, that same index has a key of (0,0).  Mesh1(0,0) gives us an index of 1.  
 So we set index 1 to the (x,y) of mesh 3.  Repeating for each vertex, we get a Mesh 4 that looks like.
 
+__Mesh 4__
+
+A mesh with the structure of Mesh 1 and the shape of Mesh 3.
+
+![A copy of mesh 1 with shape of mesh 3 ](./mesh-4.png) "Mesh 4"
 
 | index | position |
 | --- | --- |
